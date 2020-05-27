@@ -15,7 +15,7 @@ public class ApiCallService {
     private Retrofit retrofit;
     private GsonConverterFactory gsonConverterFactory;
     private OkHttpClient okHttpClient;
-    private static String BASE_URL = BuildConfig.BASE_URL;
+    private final static String BASE_URL = BuildConfig.BASE_URL;
 
     public ApiCallService(){
         okHttpClient = new OkHttpClient();
