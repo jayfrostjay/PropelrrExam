@@ -8,6 +8,8 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Patterns;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,8 +51,6 @@ public class MainActivity extends AppCompatActivity {
     private Context mContext;
     private AlertDialog mAlertDialog;
 
-    private TextView dateofbirthlabel;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         mobileNumber = findViewById(R.id.mobilenumber);
         dateOfBirth = findViewById(R.id.dateofbirth);
         age = findViewById(R.id.age);
-        dateofbirthlabel = findViewById(R.id.dateofbirthlabel);
         submit = findViewById(R.id.submit);
 
         emailAddress.addTextChangedListener(new TextWatcher() {
@@ -80,9 +79,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 Log.e(LOG_TAG, s.toString());
-                if( isValidEmail(s.toString()) ){
-                    Log.e(LOG_TAG, s.toString());
-                }else{
+                if( !isValidEmail(s.toString()) ){
                     emailAddress.setError("Not valid email address");
                 }
             }
@@ -102,9 +99,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 Log.e(LOG_TAG, s.toString());
-                if( isValidPhoneNumber(s.toString()) ){
-                    Log.e(LOG_TAG, s.toString());
-                }else{
+                if( !isValidPhoneNumber(s.toString()) ){
                     mobileNumber.setError("Not valid PH phone number");
                 }
             }
@@ -115,28 +110,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        dateofbirthlabel.setOnClickListener(v -> {
-//            Log.e("TESTING", "Test");
-//        });
-
         dateOfBirth.setOnClickListener(v -> {
             MaterialDatePicker.Builder<Long> builder = MaterialDatePicker.Builder.datePicker();
             builder.setTitleText(R.string.date_of_birth);
-            MaterialDatePicker<Long> picker = builder.build();
+            MaterialDatePicker<Long> picker = builder.setTheme(R.style.CustomThemeOverlay_MaterialCalendar_Fullscreen).build();
             picker.show(getSupportFragmentManager(), picker.toString());
-            picker.addOnPositiveButtonClickListener(new MaterialPickerOnPositiveButtonClickListener<Long>() {
-                @Override
-                public void onPositiveButtonClick(Long selection) {
-                    TimeZone timeZoneUTC = TimeZone.getDefault();
-                    int offsetFromUTC = timeZoneUTC.getOffset(new Date().getTime()) * -1;
-                    SimpleDateFormat simpleFormat = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-                    Date date = new Date(selection + offsetFromUTC);
-                    dateOfBirth.setText(simpleFormat.format(date));
+
+            picker.addOnPositiveButtonClickListener(selection -> {
+                Date rawDateSelected = getRawDateSelected(selection);
+                String dateSelected = getDateSelected(rawDateSelected);
+                int currentAge = getCurrentAge(rawDateSelected);
+                if( currentAge >= 18 ){
+                    dateOfBirth.setText(dateSelected);
+                    changeAgeContent(String.valueOf(currentAge));
+                }else{
+                    createDialog("Age Input Error", "Age must be 18 years old and above");
                 }
             });
         });
-
-
 
         submit.setOnClickListener(v -> {
             apiManager.executeApiCall(new ApiCallback() {
@@ -151,8 +142,25 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private Date getRawDateSelected(Long selected){
+        TimeZone timeZoneUTC = TimeZone.getDefault();
+        int offsetFromUTC = timeZoneUTC.getOffset(new Date().getTime()) * -1;
+        return new Date(selected + offsetFromUTC);
+    }
+
+    private String getDateSelected(Date date){
+        SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return simpleFormat.format(date);
+    }
+
+    private int getCurrentAge(Date date){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return generateAge(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+    }
+
     public void changeAgeContent(String ageContent){
-        age.setText(ageContent.toString());
+        age.setText(ageContent);
     }
 
     private boolean isValidEmail(CharSequence email){
@@ -171,22 +179,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean isValidFullname(CharSequence fullname){
-        return (!TextUtils.isEmpty(fullname) && !fullname.toString().contains("[a-zA-z]"));
-    }
-
     private int generateAge(int year, int month, int day){
         Calendar dob = Calendar.getInstance();
         Calendar today = Calendar.getInstance();
-
         dob.set(year, month, day);
-
         int age = today.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
-
         if (today.get(Calendar.DAY_OF_YEAR) < dob.get(Calendar.DAY_OF_YEAR)){
             age--;
         }
 
+        Log.e("TESTING", String.valueOf(age));
         return age;
     }
 

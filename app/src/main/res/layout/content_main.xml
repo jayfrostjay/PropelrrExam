@@ -88,40 +88,27 @@
             android:paddingStart="8dp" />
     </RelativeLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:padding="4dp">
 
         <TextView
             android:id="@+id/genderText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
             android:textSize="18sp"
             android:text="@string/gender"/>
 
-        <RadioGroup
-            android:paddingLeft="8dp"
-            android:layout_toRightOf="@id/genderText"
-            android:layout_width="wrap_content"
+        <Spinner
+            android:id="@+id/gender"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:checkedButton="@+id/male"
-            android:layout_toEndOf="@id/genderText">
-            <RadioButton
-                android:id="@+id/male"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/male"/>
-            <RadioButton
-                android:id="@+id/female"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/female"/>
-        </RadioGroup>
+            android:entries="@array/gender_array"
+            android:layout_marginLeft="8dp"/>
 
-    </RelativeLayout>
+    </LinearLayout>
 
     <Button
         android:id="@+id/submit"

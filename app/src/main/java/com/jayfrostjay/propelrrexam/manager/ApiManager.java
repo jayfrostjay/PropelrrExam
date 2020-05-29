@@ -16,22 +16,22 @@ public class ApiManager {
     private ApiServiceInterface apiCallService;
 
     public ApiManager(){
-        apiCallService = ApiCallService.apiCallServiceInstance();
+        ApiCallService service = new ApiCallService();
+        apiCallService = service.apiCallServiceInstance();
     }
 
     public void executeApiCall(ApiCallback callback){
-        Call<ResponseObject> call = apiCallService.mockyResponse();
-        call.enqueue(new Callback<ResponseObject>() {
+        apiCallService.mockyResponse().enqueue(new Callback<ResponseObject>() {
             @Override
             public void onResponse(Call<ResponseObject> call, Response<ResponseObject> response) {
-                Log.e("TESTING", String.valueOf(response.isSuccessful()));
                 ResponseObject resource = response.body();
-                callback.onSuccess(resource.getSamplestring().toString());
+                if( resource != null ){
+                    callback.onSuccess(resource.toString());
+                }
             }
 
             @Override
             public void onFailure(Call<ResponseObject> call, Throwable t) {
-                Log.e("TESTING ERROR", String.valueOf(t.getCause()));
                 callback.onFailure("Api Call Failed");
             }
         });
